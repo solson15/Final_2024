@@ -213,8 +213,21 @@ The odds ratio shows that females who got the vaccine were almost 1.9 times more
 ## LGBTQ -> Gay
 
 ### Summary of Gay
+```{r}
+gay_summary <- Gay %>%
+  group_by(treatment, infected) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  pivot_wider(names_from = infected, values_from = count, values_fill = 0)
+gay_summary <- gay_summary %>%
+  mutate(total = rowSums(select(., -treatment)))
+gay_column_totals <- gay_summary %>%
+  summarise(across(where(is.numeric), sum)) %>%
+  mutate(treatment = "Total")
+gay_summary <- bind_rows(gay_summary, gay_column_totals)
+gay_summary
+```
 
-
+There are 3,060 gay individuals in total. Out of these, 60 have COVID, and 3,000 are healthy. This isn’t enough to spot a clear pattern, so let’s add a bar graph to help visualize the data.
 
 
 ## Druggies
