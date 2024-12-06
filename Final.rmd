@@ -271,9 +271,40 @@ colPerc(table3)
 The numerical results indicate that among the infected gay individuals, 80% had received the placebo, while 20% had received the vaccine. Among those who were not infected, 48% had taken the placebo, and 52% had taken the vaccine. Overall, 3.2% of gay individuals on the placebo contracted COVID-19, compared to 0.77% among those who received the vaccine, suggesting that the vaccine helps reduce infection rates. These findings imply that the vaccine is effective in reducing COVID-19 rates in gay individuals, which is consistent with the bar plots demonstrating its effectiveness.
 
 ### Inferential Results
+```{r} 
+chisq.test(table3) 
+chisqtestGC(table3) 
+Gayfish <- fisher.test(table3) 
+Gayfish 
+``` 
+
+The key result to highlight is Fisher's Exact Test, which produced an extremely small p-value(𝑝=7×10−7p=7×10 −7) or 0.0000007, suggesting that the differences observed in infection rates between the vaccine and placebo groups are highly unlikely to have occurred by chance. As a result, the null hypothesis, which assumes that infection rates are independent of treatment, is rejected. The odds ratio of approximately 4.3 indicates that gay individuals who received the vaccine were nearly 4.3 times more likely to contract COVID-19 than those who received the placebo. These findings suggest that the vaccine is ineffective in preventing COVID-19 in gay individuals.
 
 
+```{r}
+# Calculate effectiveness
+gay_effect <- Gayfish$p.value / (Gayfish$p.value + 1)
+effectiveness_gay <- (1 - 1 / Gayfish$estimate) * 100
+print(effectiveness_gay)
 
+# Calculate effectiveness confidence interval
+gay_low <- (1 - 1 / Gayfish$conf.int[1]) * 100
+gay_hi <- (1 - 1 / Gayfish$conf.int[2]) * 100
+options(digits = 2)
+
+#print 
+gay_low
+gay_hi
+```
+
+### `r effectiveness_gay`% Effectiveness with Confidence Interval: `r gay_low`%  to `r gay_hi`%
+
+
+The analysis above evaluates the effectiveness of the COVID vaccine for gay individuals. If the vaccine's effectiveness is above 50%, it is considered effective. With a calculated effectiveness of 76.6% and a confidence interval ranging from 55.06% to 88.74%, we can conclude that the vaccine is effective in reducing infection rates among gay individuals.
+
+The null hypothesis (\(H_0\)) assumed that the vaccine has no effect on infection rates, while the alternative hypothesis (\(H_A\)) suggested that the vaccine reduces infection rates. Based on the very small p-value from Fisher’s Exact Test and an odds ratio of 4.3, we reject the null hypothesis and accept the alternative, confirming that the vaccine does reduce infection rates in gay individuals.
+
+The odds ratio of 4.3 indicates that gay individuals who received the vaccine were nearly 4.3 times more likely to contract COVID-19 compared to those who received the placebo. The confidence interval further supports these findings, with a 95% range of effectiveness between 55.06% and 88.74%, underscoring the vaccine's significant protective effect for gay individuals.
 ## Druggies
 
 
