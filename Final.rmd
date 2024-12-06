@@ -229,6 +229,37 @@ gay_summary
 
 There are 3,060 gay individuals in total. Out of these, 60 have COVID, and 3,000 are healthy. This isn’t enough to spot a clear pattern, so let’s add a bar graph to help visualize the data.
 
+### Visual Results
+```{r}
+# Bar plot
+
+# Summarize the data for Gay by infection status and treatment
+gay_summary_data <- Gay %>%
+  group_by(infected, treatment) %>%
+  summarize(count = n(), .groups = "drop") %>%
+  mutate(prcnt = count / sum(count))
+
+# Bar plot for count of infected vs treatment
+gay_plot_count <- ggplot(gay_summary_data, aes(x = infected, y = count, fill = treatment))
+gay_plot_count + 
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Number of Gay Individuals Infected by Treatment",
+       x = "Infection Status", y = "Count of Infected Individuals") +
+  scale_fill_manual(values = c("placebo" = "pink", "vaccine" = "purple")) +
+  theme_minimal()
+
+# Bar plot for percentage of infected vs treatment
+gay_plot_percent <- ggplot(gay_summary_data, aes(x = infected, y = prcnt * 100, fill = treatment))
+gay_plot_percent + 
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Percentage of Gay Individuals Infected by Treatment",
+       x = "Infection Status", y = "Percentage of Infected Individuals") +
+  scale_fill_manual(values = c("placebo" = "pink", "vaccine" = "purple")) +
+  theme_minimal()
+```
+
+The bar plots above display the number of gay individuals infected with COVID-19. Visually, it appears that those who received the vaccine have fewer infections compared to the placebo group. While the difference seems quite noticeable, a statistical analysis is needed to determine if the difference is statistically significant.
+
 
 ## Druggies
 
