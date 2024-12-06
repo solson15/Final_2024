@@ -1,6 +1,6 @@
 ---
 title: "Covid91 vaccine study Final2024"
-author: "Put your name here!"
+author: "Shawn Olson!"
 output: 
   html_document:
     number_sections: true
@@ -13,11 +13,17 @@ date: "`r Sys.Date()`"
 require(tidyverse)
 require(tigerstats)
 require(forcats)
-FinalDat <-read.csv(file="finalSumr2024.csv",header=TRUE)
+OldData <-read.csv(file="finalSumr2024.csv",header=TRUE)
 #recode to remove the annoying "X" from the dataframe
-FinalData <- FinalDat  %>% select(-one_of("X"))
+FinalData <- OldData %>% mutate(infected = recode(infected, covid19 = "covid", none = "OK" )) %>% select(-one_of("X"))
 FinalData <- FinalData %>%
 mutate(across(where(is.character), as.factor))
+FinalData$treatment <- relevel(FinalData$treatment,ref="placebo")
+#FinalData$infected <- relevel(FinalData$infected,ref="OK")
+Male = filter(FinalData, sex =="M")
+Female = filter(FinalData, sex =="F")
+Gay = filter(FinalData, LGBTQ =="gay")
+DrugUser = filter(FinalData, DrugUser =="yes")
 ```
 
 # Introduction
@@ -26,9 +32,153 @@ A new  preventative vaccine (covid921) is under test in clinical trials. Given t
 
 ## Males
 
+### Summary of Males
+```{r}
+male_summary <- Male %>%
+  group_by(treatment, infected) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  pivot_wider(names_from = infected, values_from = count, values_fill = 0)
+male_summary <- male_summary %>%
+  mutate(total = rowSums(select(., -treatment)))
+male_column_totals <- male_summary %>%
+  summarise(across(where(is.numeric), sum)) %>%
+  mutate(treatment = "Total")
+male_summary <- bind_rows(male_summary, male_column_totals)
+male_summary
+```
+The summary of the male data shows that there are 18,392 males in total. Out of these, 355 have COVID, while the remaining 18,037 are healthy. Let’s create a simple bar plot to show this visually.   
+
+
+### Visual Results
+
+
+```{r}
+# Bar plot
+
+# Summarize the data for Males by infection status and treatment
+male_summary_data <- Male %>%
+  group_by(infected, treatment) %>%
+  summarize(count = n(), .groups = "drop") %>%
+  mutate(prcnt = count / sum(count))
+
+# Bar plot for count of infected vs treatment
+male_plot_count <- ggplot(male_summary_data, aes(x = infected, y = count, fill = treatment))
+male_plot_count + 
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Number of Males Infected by Treatment",
+       x = "Infection Status", y = "Count of Infected Males") +
+  scale_fill_manual(values = c("placebo" = "yellow", "vaccine" = "blue")) +
+  theme_minimal()
+
+# Bar plot for percentage of infected vs treatment
+male_plot_percent <- ggplot(male_summary_data, aes(x = infected, y = prcnt * 100, fill = treatment))
+male_plot_percent + 
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Percentage of Males Infected by Treatment",
+       x = "Infection Status", y = "Percentage of Infected Males") +
+  scale_fill_manual(values = c("placebo" = "yellow", "vaccine" = "blue")) +
+  theme_minimal()
+```
+
+These bar graphs show the number of males who got COVID. It's clear that males with the vaccine have fewer cases than those who took the placebo, but the numbers are pretty close. To get a clearer picture, we need to use a different type of graph.
+
+### Numerical Results
+
+```{r}
+table1 <- xtabs(~infected + treatment, data=Male)
+rowPerc(table1)
+colPerc(table1)
+```
+
+The results show that out of the males who got COVID, 73.8% took the placebo, and 26.2% had the vaccine. For the males who stayed healthy, 50.01% took the placebo, and 49.99% had the vaccine. Overall, 2.82% of males who took the placebo got COVID, compared to only 1.02% of those who got the vaccine. This shows the vaccine helps lower the chances of getting COVID. The bar plots back up these results and show that the vaccine works to reduce infections in males.
+
+### Inferential Results
+```{r}
+chisq.test(table1)
+chisqtestGC(table1)
+Malefish <- fisher.test(table1)
+Malefish
+```
+
+The main result comes from Fisher's Exact Test, which gave a super tiny p-value (𝑝=2.2×10⁻¹⁶). This means the difference in infection rates between the vaccine and placebo groups is almost definitely not random. Because of this, we reject the idea (the null hypothesis) that treatment doesn’t affect infection rates. The odds ratio, about 2.82, means males who got the vaccine were almost 2.8 times more likely to get COVID compared to those on the placebo. This suggests the vaccine didn’t work well to prevent COVID in males.
+
+
+```{r}
+male_effect <- Malefish$p.value / (Malefish$p.value + 1)
+effectiveness_male <- (1 - 1 / Malefish$estimate) * 100
+print(effectiveness_male)
+
+male_low <- (1 - 1 / Malefish$conf.int[1]) * 100
+male_hi <- (1 - 1 / Malefish$conf.int[2]) * 100
+options(digits = 2)
+
+male_low
+male_hi
+```
+
+### `r effectiveness_male`% Effectiveness with Confidence Interval: `r male_low`%  to `r male_hi`%
+
+The vaccine is over 50% effective for males, showing that it works. Its effectiveness is calculated at 64.48%, with a confidence range of 54.75% to 72.32%. This means we can confidently say the vaccine helps reduce COVID infections in males.  
+
+The null hypothesis (\(H_0\)) said the vaccine doesn’t affect infection rates, while the alternative hypothesis (\(H_A\)) said it does. Because of the very small p-value from Fisher's Exact Test and an odds ratio of 2.82, we reject the null hypothesis and accept that the vaccine does lower infection rates in males.  
+
+The odds ratio means males who got the vaccine were almost 2.8 times more likely to avoid getting COVID than those who took the placebo. The confidence range (54.75% to 72.32%) backs this up, proving the vaccine is effective at protecting males from COVID.
+
+
+
+
 
 ## Females
 
+### Summary of Females
+
+```{r}
+female_summary <- Female %>% 
+  group_by(treatment, infected) %>% 
+  summarise(count = n(), .groups = "drop") %>% 
+  pivot_wider(names_from = infected, values_from = count, values_fill = 0) 
+female_summary <- female_summary %>% 
+  mutate(total = rowSums(select(., -treatment))) 
+female_column_totals <- female_summary %>% 
+  summarise(across(where(is.numeric), sum)) %>% 
+  mutate(treatment = "Total") 
+female_summary <- bind_rows(female_summary, female_column_totals) 
+female_summary 
+```
+
+There are 18,328 females in total. Out of these, 365 have COVID, and 17,963 are healthy. Only 237 of them got the placebo, which isn’t enough to see a clear pattern. Let’s add a bar graph to help us see this visually.
+
+### Visual Results
+
+```{r}
+# Bar plot
+
+# Summarize the data for Females by infection status and treatment
+female_summary_data <- Female %>%
+  group_by(infected, treatment) %>%
+  summarize(count = n(), .groups = "drop") %>%
+  mutate(prcnt = count / sum(count))
+
+# Bar plot for count of infected vs treatment
+female_plot_count <- ggplot(female_summary_data, aes(x = infected, y = count, fill = treatment))
+female_plot_count + 
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Number of Females Infected by Treatment",
+       x = "Infection Status", y = "Count of Infected Females") +
+  scale_fill_manual(values = c("placebo" = "green", "vaccine" = "red")) +
+  theme_minimal()
+
+# Bar plot for percentage of infected vs treatment
+female_plot_percent <- ggplot(female_summary_data, aes(x = infected, y = prcnt * 100, fill = treatment))
+female_plot_percent + 
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Percentage of Females Infected by Treatment",
+       x = "Infection Status", y = "Percentage of Infected Females") +
+  scale_fill_manual(values = c("placebo" = "green", "vaccine" = "red")) +
+  theme_minimal()
+```
+
+The bar graphs above show how many females got COVID-19. It looks like females who got the vaccine have fewer cases of COVID compared to those who got the placebo. However, the numbers for both groups are very similar in the graphs. Even though there seems to be a small difference, we need to do a statistical test to see if this difference is meaningful.
 
 ## LGBTQ
 
