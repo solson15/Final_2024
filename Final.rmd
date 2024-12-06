@@ -32,22 +32,7 @@ A new  preventative vaccine (covid921) is under test in clinical trials. Given t
 
 ## Males
 
-### Summary of Males
-```{r}
-male_summary <- Male %>%
-  group_by(treatment, infected) %>%
-  summarise(count = n(), .groups = "drop") %>%
-  pivot_wider(names_from = infected, values_from = count, values_fill = 0)
-male_summary <- male_summary %>%
-  mutate(total = rowSums(select(., -treatment)))
-male_column_totals <- male_summary %>%
-  summarise(across(where(is.numeric), sum)) %>%
-  mutate(treatment = "Total")
-male_summary <- bind_rows(male_summary, male_column_totals)
-male_summary
-```
-The summary of the male data shows that there are 18,392 males in total. Out of these, 355 have COVID, while the remaining 18,037 are healthy. Let’s create a simple bar plot to show this visually.   
-
+  
 
 ### Visual Results
 
@@ -179,6 +164,16 @@ female_plot_percent +
 ```
 
 The bar graphs above show how many females got COVID-19. It looks like females who got the vaccine have fewer cases of COVID compared to those who got the placebo. However, the numbers for both groups are very similar in the graphs. Even though there seems to be a small difference, we need to do a statistical test to see if this difference is meaningful.
+
+### Numerical Results
+
+```{r}
+table2 <- xtabs(~infected + treatment, data=Female)
+rowPerc(table2)
+colPerc(table2)
+```
+
+The numbers show that, among the females who got infected, 65% took the placebo, and 35% took the vaccine. For those who didn’t get infected, 50% took the placebo, and 50% took the vaccine. Overall, 2.6% of females on the placebo got COVID-19, compared to just 1.4% of those on the vaccine. This suggests the vaccine helps lower infection rates. These results back up the bar graphs, showing that the vaccine works to reduce COVID-19 rates in females.
 
 ## LGBTQ
 
