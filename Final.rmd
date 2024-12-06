@@ -175,7 +175,45 @@ colPerc(table2)
 
 The numbers show that, among the females who got infected, 65% took the placebo, and 35% took the vaccine. For those who didn’t get infected, 50% took the placebo, and 50% took the vaccine. Overall, 2.6% of females on the placebo got COVID-19, compared to just 1.4% of those on the vaccine. This suggests the vaccine helps lower infection rates. These results back up the bar graphs, showing that the vaccine works to reduce COVID-19 rates in females.
 
-## LGBTQ
+### Inferential Results
+```{r}
+chisq.test(table2)
+chisqtestGC(table2)
+Femalefish <- fisher.test(table2)
+Femalefish
+```
+
+The key result here is from Fisher's Exact Test, which gave a very small p-value (𝑝=1×10⁻⁸), meaning the differences in infection rates between the vaccine and placebo groups are almost definitely not just random. Because of this, we reject the idea that the treatment doesn't affect infection rates. The odds ratio is about 1.9, meaning females who got the vaccine were nearly 1.9 times more likely to get COVID compared to those who took the placebo. This suggests the vaccine isn’t effective at preventing COVID-19 in females.
+
+```{r}
+# Calculate effectiveness
+female_effect <- Femalefish$p.value / (Femalefish$p.value + 1)
+effectiveness_female <- (1 - 1 / Femalefish$estimate) * 100
+print(effectiveness_female)
+
+# Calculate effectiveness confidence interval
+female_low <- (1 - 1 / Femalefish$conf.int[1]) * 100
+female_hi <- (1 - 1 / Femalefish$conf.int[2]) * 100
+options(digits = 2)
+
+#print 
+female_low
+female_hi
+```
+
+### `r effectiveness_female`% Effectiveness with Confidence Interval: `r female_low`%  to `r female_hi`%
+
+This analysis looks at how effective the COVID vaccine is in females. For the vaccine to be considered effective, its effectiveness should be over 50%. However, with an effectiveness of 46.13% and a confidence range from 32.79% to 56.98%, we conclude that the vaccine doesn’t do a good job of reducing infections in females.
+
+The null hypothesis (\(H_0\)) suggested that the vaccine has no effect on infection rates, while the alternative hypothesis (\(H_A\)) said the vaccine does reduce infection rates. Since the p-value from Fisher’s Exact Test is very small and the odds ratio is 1.9, we reject the null hypothesis and accept the alternative. This means the vaccine doesn’t significantly lower infection rates in females.
+
+The odds ratio shows that females who got the vaccine were almost 1.9 times more likely to get COVID compared to those who took the placebo. The confidence range (32.79% to 56.98%) also suggests the vaccine’s effect on females is limited.  
+
+
+## LGBTQ -> Gay
+
+### Summary of Gay
+
 
 
 
